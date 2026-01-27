@@ -1,10 +1,10 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameContext } from '../../contexts/GameContext';
-import { useGame } from '../../hooks/useGame';
+import { useGame3D } from '../../hooks/useGame3D';
+import { Scene3D, type Scene3DRef } from '../../3d/Scene3D';
 import { ScoreBoard } from './ScoreBoard';
-import { BowlingLane } from './BowlingLane';
-import { ControlArea } from './ControlArea';
+import { ControlArea3D } from './ControlArea3D';
 import { ResultOverlay } from '../../components/Overlay';
 import type { GameState } from '../../core/types';
 import styles from './GameScreen.module.css';
@@ -12,6 +12,7 @@ import styles from './GameScreen.module.css';
 export function GameScreen() {
   const navigate = useNavigate();
   const { state: contextState, saveFinalScores } = useGameContext();
+  const scene3DRef = useRef<Scene3DRef>(null);
 
   const handleGameOver = useCallback((finalState: GameState) => {
     saveFinalScores(finalState.playerScore, finalState.cpuScore);
@@ -22,12 +23,20 @@ export function GameScreen() {
     gameState,
     isAnimating,
     overlay,
-    playerThrow,
+    standingPinIds,
+    playerShot,
+    dragToShot,
     startNewGame,
-    getBallPosition,
-    getPinStates,
     dismissOverlay,
-  } = useGame(contextState.difficulty, { onGameOver: handleGameOver });
+    handleThrowComplete,
+    setScene3DRef,
+    checkCpuTurn,
+  } = useGame3D(contextState.difficulty, { onGameOver: handleGameOver });
+
+  // Scene3D ref 연결
+  useEffect(() => {
+    setScene3DRef(scene3DRef.current);
+  }, [setScene3DRef]);
 
   // 게임 시작 시 초기화
   useEffect(() => {
@@ -41,9 +50,18 @@ export function GameScreen() {
     }
   }, [contextState.isGameStarted, gameState.phase, navigate]);
 
+  // CPU 턴 체크
+  useEffect(() => {
+    checkCpuTurn();
+  }, [gameState.phase, gameState.currentTurn, isAnimating, overlay.visible, checkCpuTurn]);
+
   const isPlayerTurn = gameState.currentTurn === 'PLAYER' && !isAnimating && !overlay.visible;
-  const ball = getBallPosition();
-  const pins = getPinStates();
+
+  const handleDragEnd = useCallback((dragX: number, dragY: number, power: number) => {
+    if (!isPlayerTurn) return;
+    const shot = dragToShot(dragX, dragY, power);
+    playerShot(shot);
+  }, [isPlayerTurn, dragToShot, playerShot]);
 
   return (
     <div className={styles.container}>
@@ -55,9 +73,11 @@ export function GameScreen() {
       />
 
       <div className={styles.laneContainer}>
-        <BowlingLane
-          pins={pins.length > 0 ? pins : gameState.pins}
-          ball={ball}
+        <Scene3D
+          ref={scene3DRef}
+          standingPinIds={standingPinIds}
+          onThrowComplete={handleThrowComplete}
+          debug={false}
         />
 
         <ResultOverlay
@@ -68,8 +88,8 @@ export function GameScreen() {
         />
       </div>
 
-      <ControlArea
-        onThrow={playerThrow}
+      <ControlArea3D
+        onDragEnd={handleDragEnd}
         enabled={isPlayerTurn}
         currentTurn={gameState.currentTurn}
       />

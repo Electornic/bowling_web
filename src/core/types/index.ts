@@ -72,3 +72,44 @@ export interface DragInput {
   power: number; // 드래그 길이 기반
   direction: number; // 각도
 }
+
+// ==================== 3D Types ====================
+
+// Shot (투구 파라미터 - GameCore ↔ Physics3D 인터페이스)
+export interface Shot {
+  lineOffset: number;    // -1 ~ 1 (레인 중심 기준 좌우 위치)
+  angleOffset: number;   // -0.3 ~ 0.3 (라디안, yaw 방향)
+  power: number;         // 0.5 ~ 1.0 (파워)
+  spin: number;          // -1 ~ 1 (회전 방향/세기)
+}
+
+// 3D Vector
+export interface Vector3D {
+  x: number;
+  y: number;
+  z: number;
+}
+
+// 3D Quaternion (회전)
+export interface Quaternion3D {
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+}
+
+// 3D Pin State
+export interface PinState3D {
+  id: number;
+  position: Vector3D;
+  rotation: Quaternion3D;
+  isStanding: boolean;
+}
+
+// 3D Ball State
+export interface BallState3D {
+  position: Vector3D;
+  rotation: Quaternion3D;
+  velocity: Vector3D;
+  angularVelocity: Vector3D;
+}
