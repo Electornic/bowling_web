@@ -12,7 +12,7 @@ import {
   ANGULAR_DAMPING,
   PIN_DOWN_ANGLE,
 } from './constants';
-import type { Quaternion } from 'three';
+import { Quaternion, Vector3 } from 'three';
 
 interface Pin3DProps {
   id: number;
@@ -32,6 +32,8 @@ export const Pin3D = forwardRef<Pin3DRef, Pin3DProps>(function Pin3D(
   ref
 ) {
   const rigidBodyRef = useRef<RapierRigidBody>(null);
+  const upVector = useRef(new Vector3(0, 1, 0));
+  const worldUp = useRef(new Vector3(0, 1, 0));
 
   useImperativeHandle(ref, () => ({
     reset: (newPosition: [number, number, number]) => {
@@ -50,11 +52,9 @@ export const Pin3D = forwardRef<Pin3DRef, Pin3DProps>(function Pin3D(
       if (!rigidBodyRef.current) return false;
 
       const rotation = rigidBodyRef.current.rotation();
-      // 쿼터니언에서 기울기 각도 계산
-      const sinAngle = 2 * (rotation.w * rotation.x + rotation.y * rotation.z);
-      const cosAngle = 1 - 2 * (rotation.x * rotation.x + rotation.z * rotation.z);
-      const tiltAngle = Math.abs(Math.atan2(sinAngle, cosAngle));
-
+      const quat = new Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+      const pinUp = upVector.current.clone().applyQuaternion(quat);
+      const tiltAngle = pinUp.angleTo(worldUp.current);
       return tiltAngle > PIN_DOWN_ANGLE;
     },
     getRotation: () => {

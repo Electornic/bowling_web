@@ -1,5 +1,5 @@
 import { useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import { OrbitControls } from '@react-three/drei';
 import { BowlingLane3D } from './BowlingLane3D';
@@ -10,6 +10,7 @@ import {
   PIN_POSITIONS,
   PIN_HEIGHT,
   CAMERA_POSITION,
+  CAMERA_LOOK_AT,
 } from './constants';
 
 interface Scene3DProps {
@@ -23,6 +24,17 @@ export interface Scene3DRef {
   resetBall: () => void;
   resetPins: (standingIds: number[]) => void;
   isSimulating: () => boolean;
+}
+
+function CameraRig() {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    camera.position.set(CAMERA_POSITION.x, CAMERA_POSITION.y, CAMERA_POSITION.z);
+    camera.lookAt(CAMERA_LOOK_AT.x, CAMERA_LOOK_AT.y, CAMERA_LOOK_AT.z);
+  }, [camera]);
+
+  return null;
 }
 
 export const Scene3D = forwardRef<Scene3DRef, Scene3DProps>(function Scene3D(
@@ -136,6 +148,7 @@ export const Scene3D = forwardRef<Scene3DRef, Scene3DProps>(function Scene3D(
       }}
       style={{ background: '#1a1a2e' }}
     >
+      <CameraRig />
       {/* 조명 */}
       <ambientLight intensity={0.4} />
       <directionalLight

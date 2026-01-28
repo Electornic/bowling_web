@@ -11,6 +11,8 @@ import {
   MAX_BALL_SPEED,
   MIN_BALL_SPEED,
   LANE_WIDTH,
+  BALL_STOP_VELOCITY,
+  LANE_END_Z,
 } from './constants';
 
 interface Ball3DProps {
@@ -38,7 +40,7 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
       const angle = shot.angleOffset;
 
       // 시작 위치 (lineOffset 적용)
-      const startX = shot.lineOffset * (LANE_WIDTH / 2 - BALL_RADIUS - 0.5);
+      const startX = shot.lineOffset * (LANE_WIDTH / 2 - BALL_RADIUS);
       rigidBodyRef.current.setTranslation(
         { x: startX, y: BALL_START_POSITION.y, z: BALL_START_POSITION.z },
         true
@@ -54,7 +56,7 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
 
       // 각속도 (스핀)
       const angularVel = {
-        x: speed * 0.5, // 전진 회전
+        x: speed / BALL_RADIUS, // 전진 회전 (롤링 근사)
         y: shot.spin * 8, // 좌우 스핀
         z: 0,
       };
@@ -94,7 +96,7 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
 
       const vel = rigidBodyRef.current.linvel();
       const speed = Math.sqrt(vel.x ** 2 + vel.y ** 2 + vel.z ** 2);
-      return speed < 0.5;
+      return speed < BALL_STOP_VELOCITY;
     },
 
     isOutOfBounds: () => {
@@ -102,7 +104,7 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
 
       const pos = rigidBodyRef.current.translation();
       // 핀 뒤쪽으로 갔거나, 거터로 떨어졌거나
-      return pos.z < -62 || pos.y < -2;
+      return pos.z < LANE_END_Z - 2 || pos.y < -1;
     },
   }));
 

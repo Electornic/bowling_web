@@ -1,31 +1,45 @@
-// 월드 단위: 1 unit ≈ 10cm
-// 실제 볼링 레인: 폭 1.05m, 길이 18.3m
+// 월드 단위: 1 unit = 1 meter
+// 실제 볼링 레인: 폭 1.05m, 길이 18.3m (MVP는 비율 중심)
 
-export const LANE_WIDTH = 10.5;
-export const LANE_LENGTH = 60;
-export const LANE_THICKNESS = 0.5;
-export const GUTTER_WIDTH = 1;
-export const GUARDRAIL_HEIGHT = 1;
+export const LANE_WIDTH = 1.2;
+export const LANE_LENGTH = 18;
+export const LANE_THICKNESS = 0.2;
+export const GUTTER_WIDTH = 0.2;
+export const GUARDRAIL_HEIGHT = 0.25;
+
+export const LANE_START_Z = 0;
+export const LANE_END_Z = -LANE_LENGTH;
+export const LANE_CENTER_Z = (LANE_START_Z + LANE_END_Z) / 2;
 
 // 핀 크기
-export const PIN_HEIGHT = 1.5;
-export const PIN_RADIUS_TOP = 0.15;
-export const PIN_RADIUS_BOTTOM = 0.25;
+export const PIN_HEIGHT = 0.38;
+export const PIN_RADIUS_TOP = 0.035;
+export const PIN_RADIUS_BOTTOM = 0.05;
 
 // 볼 크기
-export const BALL_RADIUS = 0.55;
+export const BALL_RADIUS = 0.11;
 
 // 핀 배치 좌표 (x, z) - 레인 끝에서 삼각형 배치
 // z는 레인 시작점 기준 (음의 Z 방향으로 공이 굴러감)
+const PIN_ROW_SPACING = 0.3;
+const PIN_COL_SPACING = 0.3;
+const PIN_DECK_Z = LANE_END_Z + 1.5;
+
 export const PIN_POSITIONS: [number, number][] = [
-  [0, -55],                              // 1번 (헤드핀)
-  [-0.6, -56.2], [0.6, -56.2],           // 2-3번
-  [-1.2, -57.4], [0, -57.4], [1.2, -57.4], // 4-6번
-  [-1.8, -58.6], [-0.6, -58.6], [0.6, -58.6], [1.8, -58.6], // 7-10번
+  [0, PIN_DECK_Z], // 1번 (헤드핀)
+  [-PIN_COL_SPACING / 2, PIN_DECK_Z - PIN_ROW_SPACING],
+  [PIN_COL_SPACING / 2, PIN_DECK_Z - PIN_ROW_SPACING],
+  [-PIN_COL_SPACING, PIN_DECK_Z - PIN_ROW_SPACING * 2],
+  [0, PIN_DECK_Z - PIN_ROW_SPACING * 2],
+  [PIN_COL_SPACING, PIN_DECK_Z - PIN_ROW_SPACING * 2],
+  [-PIN_COL_SPACING * 1.5, PIN_DECK_Z - PIN_ROW_SPACING * 3],
+  [-PIN_COL_SPACING / 2, PIN_DECK_Z - PIN_ROW_SPACING * 3],
+  [PIN_COL_SPACING / 2, PIN_DECK_Z - PIN_ROW_SPACING * 3],
+  [PIN_COL_SPACING * 1.5, PIN_DECK_Z - PIN_ROW_SPACING * 3],
 ];
 
 // 볼 시작 위치
-export const BALL_START_POSITION = { x: 0, y: BALL_RADIUS + 0.1, z: 25 };
+export const BALL_START_POSITION = { x: 0, y: BALL_RADIUS + 0.02, z: -1.5 };
 
 // 물리 상수
 export const BALL_MASS = 7;
@@ -39,13 +53,13 @@ export const ANGULAR_DAMPING = 0.5;
 export const PIN_DOWN_ANGLE = Math.PI / 6;
 
 // 볼 멈춤 판정
-export const BALL_STOP_VELOCITY = 0.5;
+export const BALL_STOP_VELOCITY = 0.15;
 export const BALL_STOP_FRAMES = 30;
 
 // 투구 속도 매핑
-export const MAX_BALL_SPEED = 25;
-export const MIN_BALL_SPEED = 10;
+export const MAX_BALL_SPEED = 12;
+export const MIN_BALL_SPEED = 6;
 
 // 카메라 위치
-export const CAMERA_POSITION = { x: 0, y: 8, z: 35 };
-export const CAMERA_LOOK_AT = { x: 0, y: 0, z: -30 };
+export const CAMERA_POSITION = { x: 0, y: 2.6, z: 6.5 };
+export const CAMERA_LOOK_AT = { x: 0, y: 0.2, z: -8 };
