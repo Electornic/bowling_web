@@ -1,5 +1,6 @@
 import { useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import { OrbitControls } from '@react-three/drei';
 import { BowlingLane3D } from './BowlingLane3D';
@@ -13,6 +14,8 @@ import {
   CAMERA_LOOK_AT,
   BALL_RADIUS,
   PIN_RADIUS_BOTTOM,
+  SHAKE_DURATION,
+  SHAKE_STRENGTH,
 } from './constants';
 
 interface Scene3DProps {
@@ -41,6 +44,8 @@ export const Scene3D = forwardRef<Scene3DRef, Scene3DProps>(function Scene3D(
   const simulationFrameCount = useRef(0);
   const stoppedFrames = useRef(0);
   const impactAppliedRef = useRef(false);
+  const firstHitRef = useRef(false);
+  const shakeTimeRef = useRef(0);
   const pendingShotRef = useRef<Shot | null>(null);
   const pendingResetBallRef = useRef(false);
   const pendingResetPinsRef = useRef<number[] | null>(null);
@@ -82,6 +87,7 @@ export const Scene3D = forwardRef<Scene3DRef, Scene3DProps>(function Scene3D(
         simulationFrameCount.current = 0;
         stoppedFrames.current = 0;
         impactAppliedRef.current = false;
+        firstHitRef.current = false;
         isSimulatingRef.current = true;
         setIsSimulating(true);
         ballRef.current.applyShot(shot);
@@ -103,6 +109,10 @@ export const Scene3D = forwardRef<Scene3DRef, Scene3DProps>(function Scene3D(
           if (!impactAppliedRef.current) {
             impactAppliedRef.current = true;
             ballRef.current?.applyImpact(0.25);
+            if (!firstHitRef.current) {
+              firstHitRef.current = true;
+              shakeTimeRef.current = SHAKE_DURATION;
+            }
           }
         }
       });
@@ -132,6 +142,7 @@ export const Scene3D = forwardRef<Scene3DRef, Scene3DProps>(function Scene3D(
           isStrike,
           isSpare,
         });
+        ballRef.current?.reset();
         return;
       }
 
@@ -190,6 +201,7 @@ export const Scene3D = forwardRef<Scene3DRef, Scene3DProps>(function Scene3D(
       }}
       style={{ background: '#1b140f' }}
     >
+      <CameraShake shakeTimeRef={shakeTimeRef} />
       <ambientLight intensity={0.4} />
       <directionalLight
         position={[10, 20, 10]}
@@ -227,3 +239,23 @@ export const Scene3D = forwardRef<Scene3DRef, Scene3DProps>(function Scene3D(
     </Canvas>
   );
 });
+
+function CameraShake({ shakeTimeRef }: { shakeTimeRef: React.MutableRefObject<number> }) {
+  useFrame(({ camera }, delta) => {
+    if (shakeTimeRef.current > 0) {
+      shakeTimeRef.current = Math.max(0, shakeTimeRef.current - delta);
+      const strength = SHAKE_STRENGTH * (shakeTimeRef.current / SHAKE_DURATION);
+      camera.position.set(
+        CAMERA_POSITION.x + (Math.random() - 0.5) * strength,
+        CAMERA_POSITION.y + (Math.random() - 0.5) * strength,
+        CAMERA_POSITION.z + (Math.random() - 0.5) * strength
+      );
+      camera.lookAt(CAMERA_LOOK_AT.x, CAMERA_LOOK_AT.y, CAMERA_LOOK_AT.z);
+    } else {
+      camera.position.set(CAMERA_POSITION.x, CAMERA_POSITION.y, CAMERA_POSITION.z);
+      camera.lookAt(CAMERA_LOOK_AT.x, CAMERA_LOOK_AT.y, CAMERA_LOOK_AT.z);
+    }
+  });
+
+  return null;
+}

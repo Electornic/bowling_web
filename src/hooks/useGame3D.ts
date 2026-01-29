@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import type { Difficulty, Shot, ThrowResult, GameState } from '../core/types';
 import { GameStateManager } from '../core/game/GameState';
 import type { Scene3DRef } from '../3d/Scene3D';
-import { BALL_RADIUS, LANE_WIDTH, PIN_POSITIONS } from '../3d/constants';
+import { BALL_RADIUS, LANE_WIDTH, PIN_POSITIONS, CPU_DELAY_MS } from '../3d/constants';
 
 export interface OverlayState {
   visible: boolean;
@@ -26,6 +26,7 @@ export function useGame3D(difficulty: Difficulty = 'NORMAL', options: UseGame3DO
   const [standingPinIds, setStandingPinIds] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   const [cpuHasShotThisTurn, setCpuHasShotThisTurn] = useState(false);
   const [lastShotAppliedAt, setLastShotAppliedAt] = useState<number | null>(null);
+  const [cpuIsAiming, setCpuIsAiming] = useState(false);
   const standingPinIdsRef = useRef<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
   const pendingAction = useRef<'NEXT_THROW' | 'SWITCH_TURN' | 'GAME_OVER' | null>(null);
@@ -83,14 +84,14 @@ export function useGame3D(difficulty: Difficulty = 'NORMAL', options: UseGame3DO
 
     // 오버레이 표시
     if (sanitizedResult.isStrike) {
-      setOverlay({ visible: true, text: 'STRIKE!' });
+      setOverlay({ visible: true, text: '스트라이크!' });
     } else if (sanitizedResult.isSpare) {
-      setOverlay({ visible: true, text: 'SPARE!' });
+      setOverlay({ visible: true, text: '스페어!' });
     } else {
       const count = sanitizedResult.pinsKnocked.length;
       setOverlay({
         visible: true,
-        text: count === 0 ? 'GUTTER' : `${count} PIN${count > 1 ? 'S' : ''}`,
+        text: count === 0 ? '거터' : `${count}핀`,
       });
     }
 
@@ -140,6 +141,7 @@ export function useGame3D(difficulty: Difficulty = 'NORMAL', options: UseGame3DO
 
     cpuHasShotRef.current = true;
     setCpuHasShotThisTurn(true);
+    setCpuIsAiming(false);
     setIsAnimating(true);
     gameManager.current.setPhase('ROLLING');
     scene3DRef.current.applyShot(shot);
@@ -151,10 +153,21 @@ export function useGame3D(difficulty: Difficulty = 'NORMAL', options: UseGame3DO
   const scheduleCpuShot = useCallback((delay: number) => {
     if (cpuShotTimeoutRef.current !== null) return;
     if (cpuHasShotRef.current) return;
+    setCpuIsAiming(true);
     cpuShotTimeoutRef.current = window.setTimeout(() => {
       cpuShotTimeoutRef.current = null;
       triggerCpuShot();
     }, delay);
+  }, [triggerCpuShot]);
+
+  const skipCpuShot = useCallback(() => {
+    if (gameManager.current.getState().currentTurn !== 'CPU') return;
+    if (cpuHasShotRef.current) return;
+    if (cpuShotTimeoutRef.current !== null) {
+      window.clearTimeout(cpuShotTimeoutRef.current);
+      cpuShotTimeoutRef.current = null;
+    }
+    triggerCpuShot();
   }, [triggerCpuShot]);
 
   const dismissOverlay = useCallback(() => {
@@ -191,12 +204,14 @@ export function useGame3D(difficulty: Difficulty = 'NORMAL', options: UseGame3DO
       if (state.currentTurn === 'CPU') {
         cpuHasShotRef.current = false;
         setCpuHasShotThisTurn(false);
+        setCpuIsAiming(false);
         gameManager.current.setPhase('AIM');
         syncState();
-        scheduleCpuShot(1000);
+        scheduleCpuShot(CPU_DELAY_MS);
       } else {
         cpuHasShotRef.current = false;
         setCpuHasShotThisTurn(false);
+        setCpuIsAiming(false);
         gameManager.current.setPhase('AIM');
         syncState();
       }
@@ -205,12 +220,14 @@ export function useGame3D(difficulty: Difficulty = 'NORMAL', options: UseGame3DO
       if (state.currentTurn === 'CPU') {
         cpuHasShotRef.current = false;
         setCpuHasShotThisTurn(false);
+        setCpuIsAiming(false);
         gameManager.current.setPhase('AIM');
         syncState();
-        scheduleCpuShot(1000);
+        scheduleCpuShot(CPU_DELAY_MS);
       } else {
         cpuHasShotRef.current = false;
         setCpuHasShotThisTurn(false);
+        setCpuIsAiming(false);
         gameManager.current.setPhase('AIM');
         syncState();
       }
@@ -280,7 +297,7 @@ export function useGame3D(difficulty: Difficulty = 'NORMAL', options: UseGame3DO
       !isAnimating &&
       !overlay.visible
     ) {
-      scheduleCpuShot(500);
+      scheduleCpuShot(CPU_DELAY_MS);
     }
   }, [isAnimating, overlay.visible, scheduleCpuShot]);
 
@@ -298,16 +315,21 @@ export function useGame3D(difficulty: Difficulty = 'NORMAL', options: UseGame3DO
     checkCpuTurn,
     cpuHasShotThisTurn,
     lastShotAppliedAt,
+    cpuIsAiming,
+    skipCpuShot,
   };
 }
 
 // CPU Shot 생성 함수
 function generateCpuShot(difficulty: Difficulty, standingPinIds: number[]): Shot {
-  const difficultyParams: Record<Difficulty, { accuracy: number; powerVar: number; mistakeChance: number }> = {
-    EASY: { accuracy: 0.28, powerVar: 0.18, mistakeChance: 0.18 },
-    NORMAL: { accuracy: 0.18, powerVar: 0.12, mistakeChance: 0.1 },
-    HARD: { accuracy: 0.1, powerVar: 0.08, mistakeChance: 0.05 },
-    PRO: { accuracy: 0.06, powerVar: 0.05, mistakeChance: 0.02 },
+  const difficultyParams: Record<
+    Difficulty,
+    { aimNoise: number; angleNoise: number; powerVar: number; spinVar: number; mistakeChance: number }
+  > = {
+    EASY: { aimNoise: 0.22, angleNoise: 0.12, powerVar: 0.16, spinVar: 0.06, mistakeChance: 0.2 },
+    NORMAL: { aimNoise: 0.14, angleNoise: 0.08, powerVar: 0.12, spinVar: 0.05, mistakeChance: 0.12 },
+    HARD: { aimNoise: 0.1, angleNoise: 0.06, powerVar: 0.09, spinVar: 0.04, mistakeChance: 0.06 },
+    PRO: { aimNoise: 0.07, angleNoise: 0.05, powerVar: 0.07, spinVar: 0.03, mistakeChance: 0.03 },
   };
 
   const params = difficultyParams[difficulty];
@@ -332,13 +354,13 @@ function generateCpuShot(difficulty: Difficulty, standingPinIds: number[]): Shot
   const isMistake = Math.random() < params.mistakeChance;
   const mistakeMultiplier = isMistake ? 2 : 1;
 
-  // 오차 적용
-  const lineNoise = (Math.random() - 0.5) * params.accuracy * mistakeMultiplier;
-  const angleNoise = (Math.random() - 0.5) * params.accuracy * 0.4 * mistakeMultiplier;
-  const lineOffset = clamp((targetOffset + lineNoise) * 0.85, -1, 1);
-  const angleOffset = clamp(targetOffset * 0.08 + angleNoise, -0.22, 0.22);
-  const power = clamp(0.78 + (Math.random() - 0.5) * params.powerVar, 0.55, 0.95);
-  const spin = clamp((Math.random() - 0.5) * 0.08, -0.12, 0.12);
+  const lineNoise = (Math.random() - 0.5) * params.aimNoise * mistakeMultiplier;
+  const angleNoise = (Math.random() - 0.5) * params.angleNoise * mistakeMultiplier;
+  const lineOffset = clamp((targetOffset + lineNoise) * 0.7, -1, 1);
+  const angleOffset = clamp(targetOffset * 0.04 + angleNoise * 0.6, -0.08, 0.08);
+  const power = clamp(0.76 + (Math.random() - 0.5) * params.powerVar * mistakeMultiplier, 0.55, 0.95);
+
+  const spin = 0;
 
   return {
     lineOffset,

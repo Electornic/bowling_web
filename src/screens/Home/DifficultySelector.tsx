@@ -7,16 +7,16 @@ interface DifficultySelectorProps {
 }
 
 const DIFFICULTIES: { value: Difficulty; label: string; description: string }[] = [
-  { value: 'EASY', label: 'Easy', description: 'For beginners' },
-  { value: 'NORMAL', label: 'Normal', description: 'Balanced challenge' },
-  { value: 'HARD', label: 'Hard', description: 'For experienced players' },
-  { value: 'PRO', label: 'Pro', description: 'Maximum challenge' },
+  { value: 'EASY', label: '쉬움', description: '가볍게 즐기기' },
+  { value: 'NORMAL', label: '보통', description: '균형 잡힌 난이도' },
+  { value: 'HARD', label: '어려움', description: '숙련자용' },
+  { value: 'PRO', label: '프로', description: '최고 난이도' },
 ];
 
 export function DifficultySelector({ selected, onSelect }: DifficultySelectorProps) {
   return (
     <div className={styles.difficultySelector}>
-      <h3 className={styles.selectorTitle}>Select Difficulty</h3>
+      <h3 className={styles.selectorTitle}>난이도 선택</h3>
       <div className={styles.difficultyOptions}>
         {DIFFICULTIES.map((diff) => (
           <button

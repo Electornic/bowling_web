@@ -16,6 +16,8 @@ import {
   LANE_END_Z,
   LINEAR_DAMPING,
   ANGULAR_DAMPING,
+  CURVE_K,
+  MAX_CURVE,
 } from './constants';
 
 interface Ball3DProps {
@@ -36,6 +38,7 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
   const rigidBodyRef = useRef<RapierRigidBody>(null);
   const lastPositionRef = useRef<Vector3D>({ x: 0, y: 0, z: 0 });
   const lastVelocityRef = useRef<Vector3D>({ x: 0, y: 0, z: 0 });
+  const rollingRef = useRef(false);
 
   useAfterPhysicsStep(() => {
     const body = rigidBodyRef.current;
@@ -44,6 +47,15 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
     const vel = body.linvel();
     lastPositionRef.current = { x: pos.x, y: pos.y, z: pos.z };
     lastVelocityRef.current = { x: vel.x, y: vel.y, z: vel.z };
+
+    if (rollingRef.current) {
+      const spinY = body.angvel().y;
+      const forwardSpeed = Math.abs(vel.z);
+      if (forwardSpeed > 0.2) {
+        const curve = Math.min(Math.max(spinY * forwardSpeed * CURVE_K, -MAX_CURVE), MAX_CURVE);
+        body.applyImpulse({ x: curve, y: 0, z: 0 }, true);
+      }
+    }
   });
 
   useImperativeHandle(ref, () => ({
@@ -78,6 +90,7 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
       rigidBodyRef.current.setAngvel(angularVel, true);
 
       rigidBodyRef.current.wakeUp();
+      rollingRef.current = true;
     },
 
     applyImpact: (damping: number) => {
@@ -104,6 +117,7 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
       rigidBodyRef.current.sleep();
       lastPositionRef.current = { ...BALL_START_POSITION };
       lastVelocityRef.current = { x: 0, y: 0, z: 0 };
+      rollingRef.current = false;
     },
 
     getPosition: () => {

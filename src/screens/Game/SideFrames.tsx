@@ -17,7 +17,7 @@ export function SideFrames({
   return (
     <div className={styles.sideFrames}>
       <FrameColumn
-        label="YOU"
+        label="나"
         score={playerScore}
         isActive={currentTurn === 'PLAYER'}
         currentFrame={currentFrame}

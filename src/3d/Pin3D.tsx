@@ -70,11 +70,11 @@ export const Pin3D = forwardRef<Pin3DRef, Pin3DProps>(function Pin3D(
       if (hitRef.current) return;
       hitRef.current = true;
       fallParamsRef.current = {
-        rotXSpeed: 0.08 + Math.random() * 0.04,
-        rotZSpeed: (Math.random() - 0.5) * 0.08,
-        driftX: (Math.random() - 0.5) * 0.006,
-        driftZ: (Math.random() - 0.5) * 0.006,
-        dropSpeed: 0.012,
+        rotXSpeed: 0.04 + Math.random() * 0.02,
+        rotZSpeed: (Math.random() - 0.5) * 0.04,
+        driftX: (Math.random() - 0.5) * 0.003,
+        driftZ: (Math.random() - 0.5) * 0.003,
+        dropSpeed: 0.006,
       };
     },
     getPosition: () => {
@@ -98,11 +98,11 @@ export const Pin3D = forwardRef<Pin3DRef, Pin3DProps>(function Pin3D(
     groupRef.current.position.x += params.driftX;
     groupRef.current.position.z += params.driftZ;
 
-    params.rotXSpeed *= 0.98;
-    params.rotZSpeed *= 0.98;
-    params.driftX *= 0.95;
-    params.driftZ *= 0.95;
-    params.dropSpeed *= 0.98;
+    params.rotXSpeed *= 0.99;
+    params.rotZSpeed *= 0.99;
+    params.driftX *= 0.97;
+    params.driftZ *= 0.97;
+    params.dropSpeed *= 0.99;
   });
 
   if (!isStanding) {

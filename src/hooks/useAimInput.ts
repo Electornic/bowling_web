@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Shot } from '../core/types';
+import { SPIN_WINDOW_MS, SPIN_SENS } from '../3d/constants';
 
 // 유틸 함수
 function clamp(value: number, min: number, max: number): number {
@@ -13,6 +14,7 @@ interface AimState {
   isAiming: boolean;
   direction: number; // -1 to 1
   power: number; // 0 to 1
+  spin: number; // -1 to 1
 }
 
 interface PointerSample {
@@ -31,6 +33,7 @@ export function useAimInput({ enabled, onShot }: UseAimInputOptions) {
     isAiming: false,
     direction: 0,
     power: 0,
+    spin: 0,
   });
 
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -46,7 +49,7 @@ export function useAimInput({ enabled, onShot }: UseAimInputOptions) {
   const getStabilizedPosition = useCallback(() => {
     const now = Date.now();
     const recentSamples = samplesRef.current.filter(
-      (s) => now - s.time < 80 // 80ms 윈도우
+      (s) => now - s.time < SPIN_WINDOW_MS
     );
 
     if (recentSamples.length === 0) {
@@ -58,6 +61,20 @@ export function useAimInput({ enabled, onShot }: UseAimInputOptions) {
     const avgY = recentSamples.reduce((sum, s) => sum + s.y, 0) / recentSamples.length;
 
     return { x: avgX, y: avgY };
+  }, []);
+
+  const getSpinFromSamples = useCallback((samples: PointerSample[]) => {
+    if (samples.length < 2) return 0;
+    const recent = samples.filter((s) => Date.now() - s.time <= SPIN_WINDOW_MS);
+    if (recent.length < 2) return 0;
+    const first = recent[0];
+    const last = recent[recent.length - 1];
+    const dxRecent = last.x - first.x;
+    const width = window.innerWidth || 0;
+    if (!Number.isFinite(width) || width <= 0) return 0;
+    if (!Number.isFinite(dxRecent)) return 0;
+    const spin = clamp((dxRecent / width) * SPIN_SENS, -1, 1);
+    return spin;
   }, []);
 
   // Pointer 이벤트 핸들러
@@ -101,6 +118,9 @@ export function useAimInput({ enabled, onShot }: UseAimInputOptions) {
       // 오래된 샘플 제거 (200ms 이상)
       const now = Date.now();
       samplesRef.current = samplesRef.current.filter((s) => now - s.time < 200);
+      if (samplesRef.current.length > 60) {
+        samplesRef.current = samplesRef.current.slice(samplesRef.current.length - 60);
+      }
 
       const viewportWidth = window.innerWidth;
       const maxDrag = getMaxDrag();
@@ -116,14 +136,16 @@ export function useAimInput({ enabled, onShot }: UseAimInputOptions) {
 
       // 파워 곡선 (초반 빠르고 후반 완만)
       const power = clamp(0.15 + Math.pow(t, 0.75) * 0.85, 0.15, 1);
+      const spin = getSpinFromSamples(samplesRef.current);
 
       setAimState({
         isAiming: true,
         direction,
         power,
+        spin,
       });
     },
-    [aimState.isAiming, getMaxDrag]
+    [aimState.isAiming, getMaxDrag, getSpinFromSamples]
   );
 
   const handlePointerUp = useCallback(
@@ -150,12 +172,13 @@ export function useAimInput({ enabled, onShot }: UseAimInputOptions) {
 
       // 파워 곡선
       const power = clamp(0.15 + Math.pow(t, 0.75) * 0.85, 0.15, 1);
+      const spin = getSpinFromSamples(samplesRef.current);
 
       const shot: Shot = {
         lineOffset,
         angleOffset,
         power,
-        spin: 0, // MVP에서는 0 고정
+        spin,
       };
 
       // 최소 드래그 체크
@@ -168,6 +191,7 @@ export function useAimInput({ enabled, onShot }: UseAimInputOptions) {
         isAiming: false,
         direction: 0,
         power: 0,
+        spin: 0,
       });
       startPosRef.current = null;
       samplesRef.current = [];
@@ -185,6 +209,7 @@ export function useAimInput({ enabled, onShot }: UseAimInputOptions) {
         isAiming: false,
         direction: 0,
         power: 0,
+        spin: 0,
       });
       startPosRef.current = null;
       samplesRef.current = [];
@@ -200,6 +225,7 @@ export function useAimInput({ enabled, onShot }: UseAimInputOptions) {
           isAiming: false,
           direction: 0,
           power: 0,
+          spin: 0,
         });
         startPosRef.current = null;
         samplesRef.current = [];

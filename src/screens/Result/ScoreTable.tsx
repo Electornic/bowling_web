@@ -19,7 +19,7 @@ export function ScoreTable({ playerScore, cpuScore }: ScoreTableProps) {
         <div className={styles.totalColumn}>Total</div>
       </div>
 
-      <ScoreTableRow label="YOU" score={playerScore} highlight />
+      <ScoreTableRow label="나" score={playerScore} highlight />
       <ScoreTableRow label="CPU" score={cpuScore} />
     </div>
   );

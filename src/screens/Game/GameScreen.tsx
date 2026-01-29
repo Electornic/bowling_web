@@ -34,16 +34,18 @@ export function GameScreen() {
     handleThrowComplete,
     setScene3DRef,
     checkCpuTurn,
+    cpuIsAiming,
+    skipCpuShot,
   } = useGame3D(contextState.difficulty, { onGameOver: handleGameOver });
 
   // 오버레이 동기화 (useGame3D의 overlay를 GameOverlay 형식으로 변환)
   useEffect(() => {
     if (overlay.visible && overlay.text) {
       const typeMap: Record<string, OverlayType> = {
-        'STRIKE!': 'strike',
-        'SPARE!': 'spare',
-        'BONUS BALL': 'bonus',
-        'GUTTER': 'gutter',
+        '스트라이크!': 'strike',
+        '스페어!': 'spare',
+        '보너스 볼': 'bonus',
+        '거터': 'gutter',
       };
       const type = typeMap[overlay.text] || null;
       setGameOverlay({ type, show: true });
@@ -111,13 +113,6 @@ export function GameScreen() {
     return frame.throws.length + 1;
   };
 
-  // 난이도 타입 변환
-  const difficultyMap: Record<string, 'Easy' | 'Normal' | 'Hard' | 'Pro'> = {
-    EASY: 'Easy',
-    NORMAL: 'Normal',
-    HARD: 'Hard',
-    PRO: 'Pro',
-  };
 
   return (
     <div
@@ -140,13 +135,13 @@ export function GameScreen() {
 
       {/* UI Overlays */}
       <TopHUD
-        playerName="PLAYER 1"
+        playerName="플레이어 1"
         playerScore={gameState.playerScore.totalScore}
         cpuScore={gameState.cpuScore.totalScore}
         currentFrame={gameState.currentFrame}
         totalFrames={10}
         isPlayerTurn={gameState.currentTurn === 'PLAYER'}
-        difficulty={difficultyMap[contextState.difficulty] || 'Normal'}
+        difficulty={contextState.difficulty}
       />
 
       <CenterFrames
@@ -159,6 +154,7 @@ export function GameScreen() {
       <AimingUI
         direction={aimState.direction}
         power={aimState.power}
+        spin={aimState.spin}
         isAiming={aimState.isAiming}
       />
 
@@ -170,10 +166,23 @@ export function GameScreen() {
 
       <BottomAction
         isPlayerTurn={gameState.currentTurn === 'PLAYER' && !isAnimating}
+        currentTurn={gameState.currentTurn}
+        isAnimating={isAnimating}
         currentFrame={gameState.currentFrame}
         ballNumber={getBallNumber()}
         isAiming={aimState.isAiming}
       />
+
+      {gameState.currentTurn === 'CPU' && cpuIsAiming && (
+        <div className={styles.cpuAimingOverlay}>
+          <div className={styles.cpuAimingCard}>
+            <span className={styles.cpuAimingText}>CPU 조준 중...</span>
+            <button className={styles.cpuSkipButton} onClick={skipCpuShot}>
+              스킵
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

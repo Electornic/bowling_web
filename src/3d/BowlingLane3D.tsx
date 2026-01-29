@@ -17,6 +17,9 @@ export function BowlingLane3D() {
   const gutterInnerWallHeight = gutterDepth + 0.06;
   const pitLength = 1.2;
   const pitDepth = 0.5;
+  const rampWidth = 0.1;
+  const rampThickness = 0.04;
+  const rampAngle = 0.2;
 
   return (
     <group>
@@ -74,6 +77,18 @@ export function BowlingLane3D() {
         <meshStandardMaterial color="#1a1310" />
       </mesh>
 
+      {/* 왼쪽 램프 (레인 → 거터) */}
+      <RigidBody type="fixed" colliders="cuboid">
+        <mesh
+          position={[-LANE_WIDTH / 2 + rampWidth / 2, -gutterDepth / 2, LANE_CENTER_Z]}
+          rotation={[0, 0, -rampAngle]}
+          receiveShadow
+        >
+          <boxGeometry args={[rampWidth, rampThickness, LANE_LENGTH]} />
+          <meshStandardMaterial color="#b5835a" />
+        </mesh>
+      </RigidBody>
+
       {/* 오른쪽 거터 */}
       <RigidBody type="fixed" colliders="cuboid">
         <mesh
@@ -97,6 +112,18 @@ export function BowlingLane3D() {
         <boxGeometry args={[0.03, gutterInnerWallHeight, LANE_LENGTH]} />
         <meshStandardMaterial color="#1a1310" />
       </mesh>
+
+      {/* 오른쪽 램프 (레인 → 거터) */}
+      <RigidBody type="fixed" colliders="cuboid">
+        <mesh
+          position={[LANE_WIDTH / 2 - rampWidth / 2, -gutterDepth / 2, LANE_CENTER_Z]}
+          rotation={[0, 0, rampAngle]}
+          receiveShadow
+        >
+          <boxGeometry args={[rampWidth, rampThickness, LANE_LENGTH]} />
+          <meshStandardMaterial color="#b5835a" />
+        </mesh>
+      </RigidBody>
 
       {/* 왼쪽 가드레일 */}
       <RigidBody type="fixed" colliders="cuboid">

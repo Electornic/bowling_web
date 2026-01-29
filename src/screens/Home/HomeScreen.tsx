@@ -16,8 +16,8 @@ export function HomeScreen() {
   return (
     <div className={styles.container}>
       <div className={styles.content}>
-        <h1 className={styles.title}>Bowling</h1>
-        <p className={styles.subtitle}>VS CPU</p>
+        <h1 className={styles.title}>볼링</h1>
+        <p className={styles.subtitle}>CPU 대전</p>
 
         <DifficultySelector
           selected={state.difficulty}
@@ -26,7 +26,7 @@ export function HomeScreen() {
 
         <div className={styles.actions}>
           <Button size="large" fullWidth onClick={handleStartGame}>
-            Start Game
+            게임 시작
           </Button>
         </div>
       </div>

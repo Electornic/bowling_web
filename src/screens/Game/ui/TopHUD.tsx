@@ -1,4 +1,5 @@
 import { User, Trophy } from "lucide-react";
+import type { Difficulty } from "../../../core/types";
 import styles from "./GameUI.module.css";
 
 interface TopHUDProps {
@@ -8,7 +9,7 @@ interface TopHUDProps {
   currentFrame: number;
   totalFrames: number;
   isPlayerTurn: boolean;
-  difficulty: "Easy" | "Normal" | "Hard" | "Pro";
+  difficulty: Difficulty;
 }
 
 export function TopHUD({
@@ -20,11 +21,18 @@ export function TopHUD({
   isPlayerTurn,
   difficulty,
 }: TopHUDProps) {
-  const difficultyStyle = {
-    Easy: styles.difficultyEasy,
-    Normal: styles.difficultyNormal,
-    Hard: styles.difficultyHard,
-    Pro: styles.difficultyPro,
+  const difficultyStyle: Record<Difficulty, string> = {
+    EASY: styles.difficultyEasy,
+    NORMAL: styles.difficultyNormal,
+    HARD: styles.difficultyHard,
+    PRO: styles.difficultyPro,
+  };
+
+  const difficultyLabel: Record<Difficulty, string> = {
+    EASY: "쉬움",
+    NORMAL: "보통",
+    HARD: "어려움",
+    PRO: "프로",
   };
 
   return (
@@ -44,7 +52,7 @@ export function TopHUD({
         {/* Center Frame & Turn Status */}
         <div className={styles.centerStatus}>
           <div className={styles.frameText}>
-            Frame {currentFrame} / {totalFrames}
+            프레임 {currentFrame} / {totalFrames}
           </div>
           <div
             className={`${styles.turnBadge} ${
@@ -52,7 +60,7 @@ export function TopHUD({
             }`}
           >
             <span className={styles.turnText}>
-              {isPlayerTurn ? "Your Turn" : "CPU Turn"}
+              {isPlayerTurn ? "내 턴" : "CPU 턴"}
             </span>
           </div>
         </div>
@@ -63,7 +71,7 @@ export function TopHUD({
             <div className={styles.cpuName}>
               <span className={styles.cpuLabel}>CPU</span>
               <span className={`${styles.difficultyBadge} ${difficultyStyle[difficulty]}`}>
-                {difficulty}
+                {difficultyLabel[difficulty]}
               </span>
             </div>
             <div className={styles.score}>{cpuScore}</div>

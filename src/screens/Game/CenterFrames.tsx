@@ -27,7 +27,7 @@ export function CenterFrames({
       </div>
 
       <ScoreRow
-        label="YOU"
+        label="나"
         score={playerScore}
         currentFrame={currentFrame}
         isActive={currentTurn === 'PLAYER'}

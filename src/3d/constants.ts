@@ -60,6 +60,17 @@ export const BALL_STOP_FRAMES = 30;
 export const MAX_BALL_SPEED = 12.4;
 export const MIN_BALL_SPEED = 6.8;
 
+// 입력/커브 튜닝
+export const SPIN_WINDOW_MS = 80;
+export const SPIN_SENS = 8;
+export const CURVE_K = 0.0025;
+export const MAX_CURVE = 0.08;
+
+// CPU/임팩트 튜닝
+export const CPU_DELAY_MS = 900;
+export const SHAKE_DURATION = 0.16;
+export const SHAKE_STRENGTH = 0.06;
+
 // 카메라 위치
 export const CAMERA_POSITION = { x: 0, y: 1.55, z: 3.1 };
 export const CAMERA_LOOK_AT = { x: 0, y: 0.2, z: -4.6 };

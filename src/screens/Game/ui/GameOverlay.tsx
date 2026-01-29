@@ -25,8 +25,8 @@ export function GameOverlay({ type, show, onDismiss }: GameOverlayProps) {
       case "strike":
         return {
           icon: <Flame className={`${styles.overlayIcon} ${styles.iconStrike}`} strokeWidth={2.5} />,
-          title: "STRIKE",
-          subtitle: "Perfect Shot!",
+          title: "스트라이크",
+          subtitle: "완벽해!",
           gradient: styles.gradientStrike,
           glow: "rgba(251, 191, 36, 0.5)",
           small: false,
@@ -34,8 +34,8 @@ export function GameOverlay({ type, show, onDismiss }: GameOverlayProps) {
       case "spare":
         return {
           icon: <Zap className={`${styles.overlayIcon} ${styles.iconSpare}`} strokeWidth={2.5} />,
-          title: "SPARE",
-          subtitle: "Nice Save!",
+          title: "스페어",
+          subtitle: "좋은 커버!",
           gradient: styles.gradientSpare,
           glow: "rgba(34, 211, 238, 0.5)",
           small: false,
@@ -43,8 +43,8 @@ export function GameOverlay({ type, show, onDismiss }: GameOverlayProps) {
       case "bonus":
         return {
           icon: <Award className={`${styles.overlayIcon} ${styles.iconBonus}`} strokeWidth={2.5} />,
-          title: "BONUS BALL",
-          subtitle: "Keep it going!",
+          title: "보너스 볼",
+          subtitle: "계속 가자!",
           gradient: styles.gradientBonus,
           glow: "rgba(168, 85, 247, 0.5)",
           small: false,
@@ -52,7 +52,7 @@ export function GameOverlay({ type, show, onDismiss }: GameOverlayProps) {
       case "too-strong":
         return {
           icon: <TrendingUp className={`${styles.overlayIconSmall} ${styles.iconError}`} strokeWidth={2.5} />,
-          title: "TOO STRONG",
+          title: "너무 강함",
           subtitle: "",
           gradient: styles.gradientError,
           glow: "rgba(239, 68, 68, 0.5)",
@@ -61,7 +61,7 @@ export function GameOverlay({ type, show, onDismiss }: GameOverlayProps) {
       case "too-far-left":
         return {
           icon: <AlertCircle className={`${styles.overlayIconSmall} ${styles.iconWarning}`} strokeWidth={2.5} />,
-          title: "TOO FAR LEFT",
+          title: "너무 왼쪽",
           subtitle: "",
           gradient: styles.gradientWarning,
           glow: "rgba(249, 115, 22, 0.5)",
@@ -70,7 +70,7 @@ export function GameOverlay({ type, show, onDismiss }: GameOverlayProps) {
       case "too-far-right":
         return {
           icon: <AlertCircle className={`${styles.overlayIconSmall} ${styles.iconWarning}`} strokeWidth={2.5} />,
-          title: "TOO FAR RIGHT",
+          title: "너무 오른쪽",
           subtitle: "",
           gradient: styles.gradientWarning,
           glow: "rgba(249, 115, 22, 0.5)",
@@ -79,7 +79,7 @@ export function GameOverlay({ type, show, onDismiss }: GameOverlayProps) {
       case "gutter":
         return {
           icon: <AlertCircle className={`${styles.overlayIconSmall} ${styles.iconGutter}`} strokeWidth={2.5} />,
-          title: "GUTTER BALL",
+          title: "거터",
           subtitle: "",
           gradient: styles.gradientGutter,
           glow: "rgba(156, 163, 175, 0.5)",
@@ -126,7 +126,7 @@ export function GameOverlay({ type, show, onDismiss }: GameOverlayProps) {
             )}
 
             {/* Tap to dismiss hint */}
-            <div className={styles.dismissHint}>Tap to continue</div>
+            <div className={styles.dismissHint}>탭해서 계속</div>
           </div>
         </div>
       </div>

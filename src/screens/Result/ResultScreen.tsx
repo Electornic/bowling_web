@@ -50,13 +50,13 @@ export function ResultScreen() {
       <div className={styles.content}>
         <div className={styles.resultBanner}>
           <div className={`${styles.resultText} ${styles[result.toLowerCase()]}`}>
-            {result === 'WIN' && 'YOU WIN!'}
-            {result === 'LOSE' && 'YOU LOSE'}
-            {result === 'DRAW' && 'DRAW'}
+            {result === 'WIN' && '승리!'}
+            {result === 'LOSE' && '패배'}
+            {result === 'DRAW' && '무승부'}
           </div>
           <div className={styles.scoreComparison}>
             <span className={styles.playerScore}>{playerTotal}</span>
-            <span className={styles.vs}>vs</span>
+            <span className={styles.vs}>VS</span>
             <span className={styles.cpuScore}>{cpuTotal}</span>
           </div>
         </div>
@@ -65,10 +65,10 @@ export function ResultScreen() {
 
         <div className={styles.actions}>
           <Button size="large" onClick={handlePlayAgain}>
-            Play Again
+            다시하기
           </Button>
           <Button size="large" variant="secondary" onClick={handleGoHome}>
-            Home
+            홈으로
           </Button>
         </div>
       </div>
