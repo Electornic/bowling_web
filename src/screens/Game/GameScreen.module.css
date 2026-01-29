@@ -4,7 +4,10 @@
   height: 100dvh;
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 244, 214, 0.12), transparent 45%),
+    radial-gradient(circle at 80% 0%, rgba(255, 214, 170, 0.1), transparent 50%),
+    linear-gradient(160deg, #3b2a20 0%, #1f1712 45%, #0f0a07 100%);
   touch-action: none;
   user-select: none;
   cursor: crosshair;
@@ -25,10 +28,137 @@
   z-index: -1;
   background: linear-gradient(
     to bottom,
-    rgba(120, 53, 15, 0.1) 0%,
-    rgba(146, 64, 14, 0.2) 40%,
-    rgba(161, 98, 7, 0.3) 100%
+    rgba(210, 150, 90, 0.08) 0%,
+    rgba(176, 120, 70, 0.18) 45%,
+    rgba(120, 70, 35, 0.28) 100%
   );
+}
+
+/* Center Frame Board */
+/* Center Frame Board (Classic Bowling) */
+.centerFrames {
+  position: absolute;
+  top: 12vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  width: min(96vw, 980px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(18, 12, 8, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.classicHeaderRow {
+  display: grid;
+  grid-template-columns: 70px repeat(10, minmax(44px, 1fr)) 70px;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 800;
+}
+
+.classicHeaderCell,
+.classicLabelCell,
+.classicTotalHeader {
+  text-align: center;
+}
+
+.classicLabelCell {
+  font-size: 11px;
+  color: #93c5fd;
+  font-weight: 800;
+}
+
+.classicScoreRow {
+  display: grid;
+  grid-template-columns: 70px repeat(10, minmax(44px, 1fr)) 70px;
+  align-items: center;
+  gap: 4px;
+}
+
+.classicScoreRowActive .classicLabelCell {
+  color: #22d3ee;
+}
+
+.classicFrameCell {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.classicFrameCellCurrent {
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+}
+
+.classicThrowRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  min-height: 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.classicFrameCell .classicThrowRow:has(.classicThrowBox:nth-child(3)) {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.classicThrowBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: #e2e8f0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.classicThrowBox:last-child {
+  border-right: none;
+}
+
+.classicScoreValue {
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+.classicTotalCell {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 900;
+  color: #fbbf24;
+}
+
+@media (max-width: 720px) {
+  .centerFrames {
+    padding: 0.4rem 0.5rem;
+  }
+
+  .classicHeaderRow,
+  .classicScoreRow {
+    grid-template-columns: 50px repeat(10, minmax(28px, 1fr)) 50px;
+    gap: 3px;
+  }
+
+  .classicThrowBox {
+    font-size: 10px;
+  }
 }
 
 /* Score Board (레거시 - 더 이상 사용하지 않음, TopHUD로 대체) */

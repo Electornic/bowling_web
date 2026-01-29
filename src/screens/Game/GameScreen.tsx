@@ -6,6 +6,7 @@ import { useAimInput } from '../../hooks/useAimInput';
 import { Scene3D, type Scene3DRef } from '../../3d/Scene3D';
 import { TopHUD, BottomAction, AimingUI, GameOverlay, type OverlayType } from './ui';
 import type { GameState, Shot } from '../../core/types';
+import { CenterFrames } from './CenterFrames';
 import styles from './GameScreen.module.css';
 
 export function GameScreen() {
@@ -146,6 +147,13 @@ export function GameScreen() {
         totalFrames={10}
         isPlayerTurn={gameState.currentTurn === 'PLAYER'}
         difficulty={difficultyMap[contextState.difficulty] || 'Normal'}
+      />
+
+      <CenterFrames
+        playerScore={gameState.playerScore}
+        cpuScore={gameState.cpuScore}
+        currentFrame={gameState.currentFrame}
+        currentTurn={gameState.currentTurn}
       />
 
       <AimingUI

@@ -1,6 +1,7 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { RigidBody, BallCollider, type RapierRigidBody } from '@react-three/rapier';
 import { Sphere } from '@react-three/drei';
+import { useAfterPhysicsStep } from '@react-three/rapier';
 import type { Shot, Vector3D } from '../core/types';
 import {
   BALL_RADIUS,
@@ -13,6 +14,8 @@ import {
   LANE_WIDTH,
   BALL_STOP_VELOCITY,
   LANE_END_Z,
+  LINEAR_DAMPING,
+  ANGULAR_DAMPING,
 } from './constants';
 
 interface Ball3DProps {
@@ -21,6 +24,7 @@ interface Ball3DProps {
 
 export interface Ball3DRef {
   applyShot: (shot: Shot) => void;
+  applyImpact: (damping: number) => void;
   reset: () => void;
   getPosition: () => Vector3D;
   getVelocity: () => Vector3D;
@@ -30,6 +34,17 @@ export interface Ball3DRef {
 
 export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visible }, ref) {
   const rigidBodyRef = useRef<RapierRigidBody>(null);
+  const lastPositionRef = useRef<Vector3D>({ x: 0, y: 0, z: 0 });
+  const lastVelocityRef = useRef<Vector3D>({ x: 0, y: 0, z: 0 });
+
+  useAfterPhysicsStep(() => {
+    const body = rigidBodyRef.current;
+    if (!body) return;
+    const pos = body.translation();
+    const vel = body.linvel();
+    lastPositionRef.current = { x: pos.x, y: pos.y, z: pos.z };
+    lastVelocityRef.current = { x: vel.x, y: vel.y, z: vel.z };
+  });
 
   useImperativeHandle(ref, () => ({
     applyShot: (shot: Shot) => {
@@ -65,6 +80,20 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
       rigidBodyRef.current.wakeUp();
     },
 
+    applyImpact: (damping: number) => {
+      if (!rigidBodyRef.current) return;
+      const vel = rigidBodyRef.current.linvel();
+      rigidBodyRef.current.setLinvel(
+        { x: vel.x * damping, y: vel.y * damping, z: vel.z * damping },
+        true
+      );
+      const ang = rigidBodyRef.current.angvel();
+      rigidBodyRef.current.setAngvel(
+        { x: ang.x * damping, y: ang.y * damping, z: ang.z * damping },
+        true
+      );
+    },
+
     reset: () => {
       if (!rigidBodyRef.current) return;
 
@@ -73,36 +102,26 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
       rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
       rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
       rigidBodyRef.current.sleep();
+      lastPositionRef.current = { ...BALL_START_POSITION };
+      lastVelocityRef.current = { x: 0, y: 0, z: 0 };
     },
 
     getPosition: () => {
-      if (!rigidBodyRef.current) {
-        return { x: 0, y: 0, z: 0 };
-      }
-      const pos = rigidBodyRef.current.translation();
-      return { x: pos.x, y: pos.y, z: pos.z };
+      return lastPositionRef.current;
     },
 
     getVelocity: () => {
-      if (!rigidBodyRef.current) {
-        return { x: 0, y: 0, z: 0 };
-      }
-      const vel = rigidBodyRef.current.linvel();
-      return { x: vel.x, y: vel.y, z: vel.z };
+      return lastVelocityRef.current;
     },
 
     isStopped: () => {
-      if (!rigidBodyRef.current) return true;
-
-      const vel = rigidBodyRef.current.linvel();
+      const vel = lastVelocityRef.current;
       const speed = Math.sqrt(vel.x ** 2 + vel.y ** 2 + vel.z ** 2);
       return speed < BALL_STOP_VELOCITY;
     },
 
     isOutOfBounds: () => {
-      if (!rigidBodyRef.current) return false;
-
-      const pos = rigidBodyRef.current.translation();
+      const pos = lastPositionRef.current;
       // 핀 뒤쪽으로 갔거나, 거터로 떨어졌거나
       return pos.z < LANE_END_Z - 2 || pos.y < -1;
     },
@@ -118,8 +137,8 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
       type="dynamic"
       position={[BALL_START_POSITION.x, BALL_START_POSITION.y, BALL_START_POSITION.z]}
       mass={BALL_MASS}
-      linearDamping={0.3}
-      angularDamping={0.3}
+      linearDamping={LINEAR_DAMPING}
+      angularDamping={ANGULAR_DAMPING}
       colliders={false}
       ccd={true} // Continuous Collision Detection
     >
@@ -129,19 +148,6 @@ export const Ball3D = forwardRef<Ball3DRef, Ball3DProps>(function Ball3D({ visib
       <Sphere args={[BALL_RADIUS, 32, 32]} castShadow>
         <meshStandardMaterial color="#1a202c" metalness={0.3} roughness={0.4} />
       </Sphere>
-
-      {/* 손가락 구멍 */}
-      <group rotation={[0, 0, 0]}>
-        <Sphere args={[0.08, 16, 16]} position={[0.15, 0.3, 0]}>
-          <meshStandardMaterial color="#0a0a0a" />
-        </Sphere>
-        <Sphere args={[0.08, 16, 16]} position={[-0.15, 0.3, 0]}>
-          <meshStandardMaterial color="#0a0a0a" />
-        </Sphere>
-        <Sphere args={[0.1, 16, 16]} position={[0, 0.1, 0.2]}>
-          <meshStandardMaterial color="#0a0a0a" />
-        </Sphere>
-      </group>
     </RigidBody>
   );
 });

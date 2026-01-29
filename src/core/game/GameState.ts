@@ -96,6 +96,7 @@ export class GameStateManager {
 
   recordThrow(result: ThrowResult): ThrowResultInfo {
     const fm = this.getCurrentFrameManager();
+    const prevFrame = fm.getCurrentFrame();
     const wasFrameComplete = fm.isGameComplete();
 
     fm.recordThrow(result);
@@ -103,11 +104,13 @@ export class GameStateManager {
     this.updateScores();
     this.syncState();
 
-    const isFrameComplete = fm.getCurrentFrame() > this.state.currentFrame ||
-      (fm.isGameComplete() && !wasFrameComplete);
+    const frameChanged = fm.getCurrentFrame() !== prevFrame;
+    const isFrameComplete = frameChanged || (fm.isGameComplete() && !wasFrameComplete);
+    const isTenthFrame = prevFrame === 10;
+    const shouldResetForBonus = isTenthFrame && !isFrameComplete && (result.isStrike || result.isSpare);
 
     return {
-      shouldResetPins: result.isStrike || isFrameComplete,
+      shouldResetPins: result.isStrike || isFrameComplete || shouldResetForBonus,
       isFrameComplete,
       isTurnComplete: isFrameComplete,
     };
