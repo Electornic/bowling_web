@@ -101,6 +101,7 @@ export function useAimInput({ enabled, onShot }: UseAimInputOptions) {
         isAiming: true,
         direction: 0,
         power: 0,
+        spin: 0,
       });
     },
     [enabled]
